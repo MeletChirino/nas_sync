@@ -1,0 +1,11 @@
+# Ignorar el archivo de secretos
+.env
+
+# Ignorar archivos de log y temporales
+*.log
+*.lock
+archivos_transferidos.txt
+
+# Ignorar carpetas de Python
+__pycache__/
+venv/
