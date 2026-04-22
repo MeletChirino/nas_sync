@@ -1,8 +1,14 @@
 #!/bin/bash
-LOCKFILE=/mnt/nancy/Home/meletc/temp/sync.lock
-DONE_LOG=/mnt/nancy/Home/meletc/temp/file.log
-TEMP_DIR=/mnt/nancy/Media/temp
-#SCRIPT_PATH="path/to/project"
+# Get directory where is this file located
+SCRIPT_DIR=SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load .env file
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
+else
+    echo "Error crítico: No se encontró el archivo .env en $SCRIPT_DIR"
+    exit 1
+fi
 
 if [ -e $LOCKFILE ]; then exit; fi
 touch $LOCKFILE
@@ -14,13 +20,12 @@ rsync -avz --inplace \
       --exclude='*.part' \
       --exclude='*.crdownload' \
       --exclude='.DS_Store' \
-      --exclude-from="$DONE_LOG" \
+      --exclude-from="$LOCAL_DONE_LOG" \
       --log-format="%f" \
-      meletc@100.80.137.76:/volume1/Plex/downloads/ "$TEMP_DIR" | grep -v 'directory' >> "$DONE_LOG"
+      "$REMOTE_USER@$REMOTE_IP:/volume1/Plex/downloads/" "$LOCAL_TEMP_DIR" | grep -v 'directory' >> "$LOCAL_DONE_LOG"
     
 # Sort files using python script, inside this python script notifications will be sent
-# python $SCRIPT_PATH
+# usr/bin/python3 $SCRIPT_DIR/organizer.py
 
-rsync -avz --exclude-from=/ruta/local/archivos_transferidos.txt \
-      --log-format="%f" --dry-run \
-      user@remote:/ruta/remota/ /ruta/local/temporal/ >> /ruta/local/archivos_transferidos.txt
+rm "$LOCFILE"
+
