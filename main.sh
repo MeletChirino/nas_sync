@@ -1,31 +1,32 @@
 #!/bin/bash
 # Get directory where is this file located
-SCRIPT_DIR=SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "Buscando en: $SCRIPT_DIR"
+ls -la "$SCRIPT_DIR"
+
+LOCKFILE="$SCRIPT_DIR/sync.lock"
+
+# Verifca que exista el lock file
+echo "Buscando $LOCKFILE"
+if [ -f $LOCKFILE ]; then
+    echo "Lock file encontrado, abortando tranmission"
+    exit;
+fi
+
+echo "Iniciando copia"
+touch $LOCKFILE
 
 # Load .env file
 if [ -f "$SCRIPT_DIR/.env" ]; then
+    echo "Cargando variables de entorno"
     export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
 else
     echo "Error crítico: No se encontró el archivo .env en $SCRIPT_DIR"
     exit 1
 fi
 
-if [ -e $LOCKFILE ]; then exit; fi
-touch $LOCKFILE
+# Python sincroniza y organiza
+python3 $SCRIPT_DIR/main.py
 
-# Download files using rsync and logging all downloaded files to log file
-rsync -avz --exclude-from=$DONE_LOG meletc@100.80.137.76:/volume1/Plex/downloads/ $TEMP_DIR
-
-rsync -avz --inplace \
-      --exclude='*.part' \
-      --exclude='*.crdownload' \
-      --exclude='.DS_Store' \
-      --exclude-from="$LOCAL_DONE_LOG" \
-      --log-format="%f" \
-      "$REMOTE_USER@$REMOTE_IP:/volume1/Plex/downloads/" "$LOCAL_TEMP_DIR" | grep -v 'directory' >> "$LOCAL_DONE_LOG"
-    
-# Sort files using python script, inside this python script notifications will be sent
-# usr/bin/python3 $SCRIPT_DIR/organizer.py
-
-rm "$LOCFILE"
-
+rm "$LOCKFILE"

@@ -1,0 +1,12 @@
+{
+  "reglas": [
+    {
+      "destino": "ubuntu/lts",
+      "keywords": ["ubuntu", "lts", "jammy"]
+    },
+    {
+      "destino": "fedora/workstation",
+      "keywords": ["fedora", "workstation"]
+    }
+  ]
+}
