@@ -85,22 +85,22 @@ Para ejecutar el sincronizador automáticamente, añádelo a tu crontab. Se reco
 
 Estamos mejorando el flujo de trabajo constantemente. Las próximas funciones planeadas son:
 
-Notificaciones de Telegram: Integrar la función send_telegram_notification para recibir alertas en tiempo real cuando una transferencia comienza, termina o cuando un archivo es ignorado.
+- Notificaciones de Telegram: Integrar la función send_telegram_notification para recibir alertas en tiempo real cuando una transferencia comienza, termina o cuando un archivo es ignorado.
 
-Registro de Errores (Error Logging): Implementar un sistema de logs detallado que capture fallos de conexión SSH o errores de escritura en disco en un archivo error.log independiente para facilitar el diagnóstico.
+- Registro de Errores (Error Logging): Implementar un sistema de logs detallado que capture fallos de conexión SSH o errores de escritura en disco en un archivo error.log independiente para facilitar el diagnóstico.
 
-Verificación de Checksum: Opción para verificar la integridad del archivo usando MD5/SHA256 después de la transferencia.
+- Verificación de Checksum: Opción para verificar la integridad del archivo usando MD5/SHA256 después de la transferencia.
 
-Refactorización del Código: Actualmente el código es un poco "espagueti" 🍝; un pequeño refactor vendría bien para mejorar la modularidad y facilitar el mantenimiento a largo plazo.
+- Refactorización del Código: Actualmente el código es un poco "espagueti" 🍝; un pequeño refactor vendría bien para mejorar la modularidad y facilitar el mantenimiento a largo plazo.
 
-Panel Web: Una página de estado simple para visualizar el historial de descargas desde el navegador.
+- Panel Web: Una página de estado simple para visualizar el historial de descargas desde el navegador.
 
 ## 🛡️ Seguridad
 
-    El archivo secrets.json está ignorado por Git a través de .gitignore.
+- El archivo secrets.json está ignorado por Git a través de .gitignore.
 
-    El script utiliza subprocess con argumentos en formato de lista para prevenir inyecciones de shell.
+- El script utiliza subprocess con argumentos en formato de lista para prevenir inyecciones de shell.
 
-    Modo Debug: Puedes activar DEBUG = True en sync_manager.py para ver logs detallados y el progreso de rsync durante las pruebas manuales.
+- Modo Debug: Puedes activar DEBUG = True en sync_manager.py para ver logs detallados y el progreso de rsync durante las pruebas manuales.
 
 Desarrollado para una gestión de NAS eficiente y organizada.
