@@ -74,9 +74,9 @@ ssh-copy-id tu_usuario@ip_remota
 
 Para ejecutar el sincronizador automáticamente, añádelo a tu crontab. Se recomienda usar un script de envoltura .sh para manejar el lockfile como se discutió.
 
-    1. Abre el crontab: crontab -e
+1. Abre el crontab: crontab -e
 
-    2. Añade la entrada (ejemplo, cada 15 minutos):
+2. Añade la entrada (ejemplo, cada 15 minutos):
 ```bash
 */15 * * * * cd /ruta/al/repo && ./launcher.sh >> ./cron_error.log 2>&1
 ```
