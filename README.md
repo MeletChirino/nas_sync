@@ -1,29 +1,71 @@
-# NAS SYNC
-Este es mi proyectico personal para descargar archivos desde un nas donde se hacen descargas y luego organizarlos dentro de mi computador personal.
+# 🚀 NAS Distro Automator
 
-## Importante
+Una solución ligera en Python, sin dependencias externas, para sincronizar y organizar archivos (como ISOs de Linux) de forma inteligente entre un servidor remoto y un NAS local. Utiliza Python como "cerebro" para clasificar archivos mediante reglas y delega la carga pesada a rsync.
+## 🛠 Cómo funciona
 
-Necesitaras un archivo .env que tenga las siguientes vairables:
+    Escaneo Remoto: El script se conecta vía SSH a tu NAS remoto y lista los archivos disponibles.
+
+    Filtrado Inteligente: Ignora carpetas, archivos temporales (.part) y cualquier archivo que ya esté presente en el registro local (transfer_log).
+
+    Coincidencia por Reglas: Verifica el nombre del archivo contra las palabras clave definidas en config.json.
+
+    Sincronización Selectiva: Si hay una coincidencia, activa rsync para descargar el archivo directamente en su carpeta de categoría correspondiente.
+
+    Registro (Logging): Tras una transferencia exitosa, el nombre del archivo se guarda en un log local para evitar futuras descargas duplicadas.
+
+## ⚙️ Instalación y Configuración
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/tu-usuario/nas-distro-automator.git
+cd nas-distro-automator
 ```
-# Configuración del NAS Remoto
-REMOTE_USER=tu_usuario
-REMOTE_IP=192.168.1.100
-REMOTE_DIR=/volume1/downloads/distros/
 
-# Rutas Locales (Ocultas)
-LOCAL_TEMP_DIR=/home/usuario/nas/temporal
-LOCAL_BIBLIO_DIR=/home/usuario/nas/biblioteca
-LOCAL_DONE_LOG=/home/usuario/nas/logs/transferidos.txt
+### 2. Configuración (Archivos JSON)
 
-# Notificaciones
-TELEGRAM_TOKEN=123456789:ABCdefGHIjklMNO
-TELEGRAM_CHAT_ID=987654321
+Debes crear dos archivos en la raíz del proyecto. Como este proyecto utiliza la librería nativa `json`, no es necesario instalar nada con `pip`.
+`secrets.json` 🔐
+
+Guarda tus credenciales privadas aquí. No subas este archivo a GitHub.
+```json
+{
+  "remote": {
+    "user": "tu_usuario",
+    "ip": "192.168.1.XX",
+    "directory": "/ruta/remota/descargas"
+  },
+  "local": {
+    "library": "/ruta/local/biblioteca",
+    "transfer_log": "/ruta/local/transfer_log.txt"
+  },
+  "notificaciones": {
+    "telegram_token": "",
+    "chat_id": ""
+  }
+}
 ```
 
-Tambien deberas correr el siguiente script en tu carpeta para crear el archivo de log
+`config.json` 📂
 
+Define tus reglas de organización.
+```json
+{
+  "rules": [
+    {
+      "destination": "distros/ubuntu",
+      "keywords": ["ubuntu", "lts", "noble"]
+    },
+    {
+      "destination": "distros/fedora",
+      "keywords": ["fedora", "workstation"]
+    }
+  ]
+}
 ```
-rsync -avz --exclude-from=/ruta/local/archivos_transferidos.txt \
-      --log-format="%f" --dry-run \
-      user@remote:/ruta/remota/ /ruta/local/temporal/ >> /ruta/local/archivos_transferidos.txt
+
+### 3. Llaves SSH
+
+Asegúrate de tener acceso SSH sin contraseña al NAS remoto:
+
+```bash
+ssh-copy-id tu_usuario@ip_remota
 ```

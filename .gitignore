@@ -1,5 +1,6 @@
 # Ignorar el archivo de secretos
 .env
+secrets.yaml
 
 # Ignorar archivos de log y temporales
 *.log
