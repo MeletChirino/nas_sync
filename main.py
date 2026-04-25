@@ -182,7 +182,7 @@ def main():
             rsync_options = ["-avz", "--progress"]
             print(f"🚀 Starting transfer for {item['name']}...")
 
-        rsync_source = f"{remote_host}:\"{remote_dir}{item['name']}\""
+        rsync_source = f"{remote_host}:\"{remote_dir}/{item['name']}\""
         rsync_command = ["rsync"] + rsync_options + [rsync_source, item['final_destination']]
 
         # Execute rsync
