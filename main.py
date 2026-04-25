@@ -177,9 +177,9 @@ def main():
         # Remove * at the end of the name
         item["name"] = item["name"][0:-1]
         # D. Configure Rsync options based on DEBUG mode
-        rsync_options = ["-az"]
+        rsync_options = "-az"
         if DEBUG:
-            rsync_options = ["-avz", "--progress"]
+            rsync_options = f"-avz --progress"
             print(f"🚀 Starting transfer for {item['name']}...")
 
         rsync_source = f"{remote_host}:\"{remote_dir}/{item['name']}\""
