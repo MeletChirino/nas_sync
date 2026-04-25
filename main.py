@@ -8,6 +8,47 @@ DEBUG = True  # Set to False for production/silent mode
 # Localizar la carpeta del script para que funcione en Cron
 SCRIPT_DIR = Path(__file__).parent
 
+def send_telegram_notification(item, secrets, status="success"):
+    """
+    Sends a notification via Telegram API using system curl.
+    status: "success", "ignored", or "error"
+    """
+    token = secrets['telegram']['token']
+    chat_id = secrets['telegram']['chat_id']
+
+    if not token or not chat_id:
+        if DEBUG: print("⚠️ Telegram credentials missing. Skipping notification.")
+        return
+
+    # Personalización del mensaje según el estado
+    icons = {"success": "✅", "ignored": "⏭️", "error": "❌"}
+    titles = {
+        "success": "*Download Complete*",
+        "ignored": "*File Ignored (No Match)*",
+        "error": "*Transfer Failed*"
+    }
+
+    icon = icons.get(status, "🔔")
+    title = titles.get(status, "*Notification*")
+    print(f"Item: {item}")
+
+    message = f"{icon} {title}\n\n*Serie:* `{item['title']}`\n\n*File:* `{item['name']}`\n*Host:* `{secrets['remote']['ip']}`"
+
+    # Comando curl para evitar dependencias de Python
+    command = [
+        "curl", "-s", "-X", "POST",
+        f"https://api.telegram.org/bot{token}/sendMessage",
+        "-d", f"chat_id={chat_id}",
+        "-d", f"text={message}",
+        "-d", "parse_mode=Markdown"
+    ]
+
+    try:
+        # Ejecutamos en segundo plano para no retrasar el script principal
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        if DEBUG: print(f"❌ Could not send Telegram notification: {e}")
+
 def load_config():
     try:
         if DEBUG: print(F"Open {SCRIPT_DIR}/secrets.json")
@@ -52,10 +93,13 @@ def classify_file(filename, rules):
     for rule in rules:
         if any(key.lower() in name_lower for key in rule['keywords']):
             if DEBUG: print(f"--> Title match")
-            if any(key.lower() in name_lower for key in rule['season']):
-                if DEBUG: print(f"--> Season match")
-                return rule['destination']
-    return None
+            if "season" in rules:
+                if any(key.lower() in name_lower for key in rule['season']):
+                    if DEBUG: print(f"--> Season match")
+                    return rule['destination'], rule["title"]
+            else:
+                return rule['destination'], rule["title"]
+    return None, rule["title"]
 
 def main():
     secrets, config = load_config()
@@ -92,7 +136,7 @@ def main():
 
     remote_items = ssh_result.stdout.splitlines()
 
-    print(f"remote files: {remote_items}")
+    if DEBUG: print(f"remote files: {remote_items}")
 
     downloadable_items = []
     # Process items
@@ -101,14 +145,26 @@ def main():
         if ignore_file(item, download_list): continue
         if DEBUG: print(f"Analize item: {item}")
 
-        # C. MATCH VERIFICATION (Only download if it exists in our rules)
-        target_subfolder = classify_file(item, config['library'])
+        # MATCH VERIFICATION (Only download if it exists in our rules)
+        target_subfolder, title = classify_file(item, config['library'])
+
+        clean_name = item[0:-1]
+        is_file_in_database = False
+        if DEBUG: print(f"--> Verify if {clean_name} is on database")
+        # Check if the file is already in our local database
+        if clean_name in download_list:
+            if DEBUG: print(f"✅ Skipping: '{clean_name}' is already in the log.")
+            continue
+
+        if ".part" in item:
+            continue
 
         if target_subfolder:
             if DEBUG: print(f"🎯 Match found: {item} -> {target_subfolder}")
             final_destination_path = os.path.join(local_library, target_subfolder)
             os.makedirs(final_destination_path, exist_ok=True)
             item_dict = {
+                "title": title,
                 "name": item,
                 "final_destination": final_destination_path + "/",
             }
@@ -133,11 +189,15 @@ def main():
         print(F"RUN: {rsync_command}")
         rsync_result = subprocess.run(rsync_command)
 
+        # Check on log file
+
         if rsync_result.returncode == 0:
             # E. Register in log only if the transfer was successful
             with open(log_db, "a") as f:
-                f.write(f"{item}\n")
+                f.write(f"{item['name']}\n")
             if DEBUG: print(f"✅ Logged successfully: {item['name']}")
+            send_telegram_notification(item, secrets, status="success")
+
         else:
             if DEBUG: print(f"❌ Failed to download: {item['name']}")
 
