@@ -1,6 +1,7 @@
 # Ignorar el archivo de secretos
 .env
-secrets.yaml
+secrets.json
+config.json
 
 # Ignorar archivos de log y temporales
 *.log
