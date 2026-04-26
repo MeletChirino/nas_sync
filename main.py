@@ -110,6 +110,7 @@ def main():
     remote_host = f"{user}@{ip}"
     remote_dir = secrets['remote']['directory']
     local_library = secrets['local']['library']
+    rsync_path = secrets['local']['rsync']
 
     print(f"Iniciando sincronización con {remote_host}...")
     # ... resto de la lógica de rsync ...
@@ -177,16 +178,22 @@ def main():
         # Remove * at the end of the name
         item["name"] = item["name"][0:-1]
         # D. Configure Rsync options based on DEBUG mode
-        rsync_options = "-az"
+        rsync_options = ""
         if DEBUG:
-            rsync_options = f"-avz --progress"
+            rsync_options = f"--progress"
             print(f"🚀 Starting transfer for {item['name']}...")
 
-        rsync_source = f"{remote_host}:\"{remote_dir}/{item['name']}\""
-        rsync_command = f"rsync {rsync_options} {rsync_source} {item['final_destination']}"
+        rsync_source = f"{remote_host}:{remote_dir}/{item['name']}"
+        rsync_command = [
+            rsync_path,
+            "-avz",
+            rsync_options,
+            rsync_source,
+            item['final_destination']
+        ]
 
         # Execute rsync
-        print(F"RUN: {rsync_command}")
+        if DEBUG: print(F"RUN: {rsync_command}")
         rsync_result = subprocess.run(rsync_command)
 
         # Check on log file
